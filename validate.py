@@ -1,7 +1,9 @@
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 import platform
 from selenium.common.exceptions import NoAlertPresentException,UnexpectedAlertPresentException
 import time
+import shutil
 
 
 def is_linux():
@@ -10,7 +12,9 @@ def is_linux():
 if is_linux():
     from selenium.webdriver.chrome.options import Options
     options = Options()
-    options.binary_location = "/usr/bin/chromium"
+    chromium_path = shutil.which("chromium") or shutil.which("chromium-browser") or shutil.which("google-chrome")
+    if chromium_path:
+        options.binary_location = chromium_path
 else:
     options = webdriver.ChromeOptions()
 
@@ -23,7 +27,9 @@ options.add_argument("--no-sandbox")
 
 def validate_js_alert(url):
 
-    driver = webdriver.Chrome(options=options)
+    chromedriver_path = shutil.which("chromedriver")
+    service = Service(chromedriver_path) if chromedriver_path else None
+    driver = webdriver.Chrome(service=service, options=options)
     try:
         # Navigate to the URL
         #print(url)
@@ -42,7 +48,6 @@ def validate_js_alert(url):
             alert.accept()
 
             #print(f"Alert detected: {alert_text}\n{url}")
-            driver.quit()
             return {'success':True,'url':url}
 
         except NoAlertPresentException:
@@ -57,6 +62,9 @@ def validate_js_alert(url):
     except Exception as e:
         #pass
         print(e)
+        return {'success':False,'url':url}
+    finally:
+        driver.quit()
     
 
 
