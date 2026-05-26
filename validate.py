@@ -28,8 +28,10 @@ options.add_argument("--no-sandbox")
 def validate_js_alert(url):
 
     chromedriver_path = shutil.which("chromedriver")
-    service = Service(chromedriver_path) if chromedriver_path else None
-    driver = webdriver.Chrome(service=service, options=options)
+    if chromedriver_path:
+        driver = webdriver.Chrome(service=Service(chromedriver_path), options=options)
+    else:
+        driver = webdriver.Chrome(options=options)
     try:
         # Navigate to the URL
         #print(url)
